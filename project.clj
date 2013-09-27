@@ -7,11 +7,11 @@
                  [org.clojure/clojurescript "0.0-1889"]
                  [org.clojure/core.async "0.1.222.0-83d0c2-alpha"]
                  [prismatic/dommy "0.1.1"]]
-  :plugins [[lein-cljsbuild "0.3.2"]]
+  :plugins [[lein-cljsbuild "0.3.3"]]
   :cljsbuild
   {:builds
    [{:id "simple"
-     :source-paths ["src/cljs_test"]
+     :source-paths ["src/life_in_a_row"]
      :compiler {:optimizations :simple ;:advanced
                 :pretty-print false
                 :output-dir "out"
