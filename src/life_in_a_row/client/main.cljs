@@ -2,17 +2,21 @@
 ; inspired by http://clj-me.cgrand.net/index.php?s=game+of+life
 
 (ns cljs-test.client.main
-  (:require [cljs.core.async :as async
+  (:require [clojure.set :refer [map-invert]]
+            [cljs.core.async :as async
              :refer [<! >! chan close! sliding-buffer put! alts! timeout]]
             [dommy.utils :as utils]
             [dommy.core :as dommy])
-  (:use-macros [dommy.macros :only [node sel sel1]]))
+  (:use-macros [cljs.core.async.macros :only [go]]
+               [dommy.macros :only [node sel sel1]]))
+
+(defn dbg [e] (.log js/console (pr-str e) e) e)
 
 ;;;;;;;;;;;;;;;
 (def grid-size 10)
 
-(def board {[10 10] :p1, [10 11] :p1, [10 12] :p1, [10 13] :p1,
-            [11 10] :p2, [11 11] :p1})
+(def board {[5 5] :p1, [5 6] :p1, [5 7] :p1, [5 8] :p1,
+            [6 5] :p2, [6 6] :p1})
 
 (def directions
   (for [dx [-1 0 1], dy [-1 0 1]
@@ -20,6 +24,7 @@
     [dx dy]))
 
 ;; logic
+(def opponent {:p1 :p2, :p2 :p1})
 
 (defn pos+
   "adds two positions/directions"
@@ -51,7 +56,7 @@
   (first
    (for [[pos player] board
          dir directions
-         :let [row (take row-length (iterate #(pos+ dir %) pos))
+         :let [row (take grid-size (iterate #(pos+ dir %) pos))
                colors (map board row)]
          :when (apply = colors)] ; whole row occupied by same color
      (first colors))))
@@ -60,20 +65,52 @@
 
 (def cell-divs (repeatedly (* grid-size grid-size) #(node [:div.cell])))
 
+(def grid (reduce dommy/append! [:div#grid] cell-divs))
+
 (def div->cell
   (into {}
         (map vector
              cell-divs
              (for [x (range grid-size), y (range grid-size)] [x y]))))
 
-(defn  add-grid! []
-  (let [grid (reduce dommy/append! [:div#grid] cell-divs)]
-    (dommy/append! (sel1 :body) grid)))
+(def cell->div (map-invert div->cell))
 
+(defn event-chan
+  [elem event-type f]
+  (let [ch (chan)]
+    (dommy/listen! elem event-type #(put! ch (f %)))
+    ch))
 
-(dommy/listen!
- (sel1 :#grid) :click
- (fn [e] (dbg (div->cell (.-target e)))))
+(defn draw! [board]
+  (doseq [div cell-divs]
+    (dommy/remove-class! div :p1 :p2))
+  (doseq [[cell player] board]
+    (dommy/add-class! (cell->div cell) player)))
+
+(defn game-loop [cell-click-ch]
+  (go
+   (loop [board board
+          cell (<! cell-click-ch)
+          player :p1]
+     (draw! (assoc board cell player))
+     (recur (step (assoc board cell player))
+            (<! cell-click-ch)
+            (opponent player)))))
+
+(def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
+
+(comment
+  (dommy/append! (sel1 :body) grid)
+  (draw! board)
+  (game-loop cell-click-ch)
+  (go (dbg (str "hej" (<! cell-click-ch))))
+  )
+
+;(defn setup! []
+;  (dommy/append! (sel1 :body) grid)
+;  (let [a 1]
+;     (game-loop cell-click-ch)))
+;
 
 ;(dommy/unlisten! (sel1 :#grid) :click dbg)
 
@@ -81,4 +118,3 @@
 
 ;(node [:p "Hello"])
 
-;(defn dbg [e] (.log js/console (pr-str e) e) e)
