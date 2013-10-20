@@ -14,6 +14,7 @@
 
 ;;;;;;;;;;;;;;;
 (def grid-size 10)
+(def nr-to-win 4)
 
 (def board {[5 5] :p1, [5 6] :p1, [5 7] :p1, [5 8] :p1,
             [6 5] :p2, [6 6] :p1})
@@ -56,7 +57,7 @@
   (first
    (for [[pos player] board
          dir directions
-         :let [row (take grid-size (iterate #(pos+ dir %) pos))
+         :let [row (take nr-to-win (iterate #(pos+ dir %) pos))
                colors (map board row)]
          :when (apply = colors)] ; whole row occupied by same color
      (first colors))))
@@ -98,9 +99,11 @@
           (draw! board)
           (<! (timeout 200))
           (draw! next-board)
-          (recur (opponent player)
-                 (<! cell-click-ch)
-                 next-board)))))
+          (if-let [winner (get-winner next-board)]
+            (dbg (str winner " won!"))
+            (recur (opponent player)
+                   (<! cell-click-ch)
+                   next-board))))))
 
 (def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
 
