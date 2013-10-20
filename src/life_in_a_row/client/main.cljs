@@ -102,18 +102,12 @@
 
 (def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
 
-(comment
-  (dommy/append! (sel1 :body) grid)
+(defn setup! []
   (draw! board)
-  (game-loop cell-click-ch)
-  (go (dbg (str "hej" (<! cell-click-ch))))
-  )
+  (dommy/append! (sel1 :body) grid)
+  (game-loop cell-click-ch :p1))
 
-;(defn setup! []
-;  (dommy/append! (sel1 :body) grid)
-;  (let [a 1]
-;     (game-loop cell-click-ch)))
-;
+(setup!)
 
 ;(dommy/unlisten! (sel1 :#grid) :click dbg)
 
