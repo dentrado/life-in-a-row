@@ -84,8 +84,10 @@
 (defn draw! [board]
   (doseq [div cell-divs]
     (dommy/remove-class! div :p1 :p2))
+  (dbg board)
   (doseq [[cell player] board]
-    (dommy/add-class! (cell->div cell) player)))
+    (when-let [div (cell->div cell)] ;don't try to draw outside the grid
+      (dommy/add-class! div player))))
 
 (defn game-loop [cell-click-ch first-player]
   (go (loop [player first-player
