@@ -87,15 +87,18 @@
   (doseq [[cell player] board]
     (dommy/add-class! (cell->div cell) player)))
 
-(defn game-loop [cell-click-ch]
-  (go
-   (loop [board board
-          cell (<! cell-click-ch)
-          player :p1]
-     (draw! (assoc board cell player))
-     (recur (step (assoc board cell player))
-            (<! cell-click-ch)
-            (opponent player)))))
+(defn game-loop [cell-click-ch first-player]
+  (go (loop [player first-player
+             move (<! cell-click-ch)
+             board board]
+        (let [board (assoc board move player)
+              next-board (step board)]
+          (draw! board)
+          (<! (timeout 200))
+          (draw! next-board)
+          (recur (opponent player)
+                 (<! cell-click-ch)
+                 next-board)))))
 
 (def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
 
