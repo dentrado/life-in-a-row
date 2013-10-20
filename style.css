@@ -1,5 +1,9 @@
+
+body { background: #333; }
+
 #grid {
   max-width: 500px;
+  margin: auto;
 }
 
 .cell {
@@ -8,17 +12,16 @@
   padding-bottom: 9.5%;
   margin: 0.5% 0.5% 0 0;
   float: left;
+  border-radius: 2px;
+  background: #ECE2AE;
 
-
-  background: #c3e9ae;
   -webkit-transition: background-color 100ms linear;
   -moz-transition: background-color 100ms linear;
   -o-transition: background-color 100ms linear;
   -ms-transition: background-color 100ms linear;
   transition: background-color 100ms linear;
-
 }
 
-.cell.p1 { background: #beeeef; }
+.cell.p1 { background: #2980B9; }
 
-.cell.p2 { background: #baaaaf; }
+.cell.p2 { background: #E74C3C; }
