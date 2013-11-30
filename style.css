@@ -3,7 +3,7 @@ body { background: #333; }
 
 #grid {
   max-width: 500px;
-  margin: auto;
+  margin: 10% auto;
 }
 
 .cell {
