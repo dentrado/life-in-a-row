@@ -94,16 +94,18 @@
   (go (loop [player first-player
              move (<! cell-click-ch)
              board board]
-        (let [board (assoc board move player)
-              next-board (step board)]
-          (draw! board)
-          (<! (timeout 200))
-          (draw! next-board)
-          (if-let [winner (get-winner next-board)]
-            (dbg (str winner " won!"))
-            (recur (opponent player)
-                   (<! cell-click-ch)
-                   next-board))))))
+        (if (board move) ; ignore clicks on living cells
+          (recur player (<! cell-click-ch) board)
+          (let [board (assoc board move player)
+                next-board (step board)]
+            (draw! board)
+            (<! (timeout 200))
+            (draw! next-board)
+            (if-let [winner (get-winner next-board)]
+              (dbg (str winner " won!"))
+              (recur (opponent player)
+                     (<! cell-click-ch)
+                     next-board)))))))
 
 (def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
 
