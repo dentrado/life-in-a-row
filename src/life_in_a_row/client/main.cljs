@@ -12,7 +12,6 @@
 
 (defn dbg [e] (.log js/console (pr-str e) e) e)
 
-;;;;;;;;;;;;;;;
 (def grid-size 10)
 (def nr-to-win 4)
 
@@ -24,7 +23,8 @@
         :when (not= [dx dy] [0 0])]
     [dx dy]))
 
-;; logic
+;; Logic
+
 (def opponent {:p1 :p2, :p2 :p1})
 
 (defn pos+
@@ -116,9 +116,6 @@
 
 (setup!)
 
-;(dommy/unlisten! (sel1 :#grid) :click dbg)
-
-;(add-grid!)
 
 ;(node [:p "Hello"])
 
