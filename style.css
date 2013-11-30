@@ -25,3 +25,7 @@ body { background: #333; }
 .cell.p1 { background: #2980B9; }
 
 .cell.p2 { background: #E74C3C; }
+
+.cell.p1:active { background: #BDC3C7; }
+
+.cell.p2:active { background: #BDC3C7; }
