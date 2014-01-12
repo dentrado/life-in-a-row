@@ -10,7 +10,8 @@
   (:use-macros [cljs.core.async.macros :only [go]]
                [dommy.macros :only [node sel sel1]]))
 
-(defn dbg [e] (.log js/console (pr-str e) e) e)
+(defn dbg [tag e]
+  (.log js/console tag (pr-str e) e) e)
 
 (def grid-size 10)
 (def nr-to-win 4)
