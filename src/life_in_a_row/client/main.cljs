@@ -1,7 +1,7 @@
 ; Martin Forsgren 2013
 ; inspired by http://clj-me.cgrand.net/index.php?s=game+of+life
 
-(ns cljs-test.client.main
+(ns life-in-a-row.client.main
   (:require [clojure.set :refer [map-invert]]
             [cljs.core.async :as async
              :refer [<! >! chan close! sliding-buffer put! alts! timeout]]
