@@ -26,7 +26,7 @@
 
 ;; Logic
 
-(def opponent {:p1 :p2, :p2 :p1})
+(def get-opponent {:p1 :p2, :p2 :p1})
 
 (defn pos+
   "adds two positions/directions"
@@ -69,6 +69,10 @@
 
 (def grid (reduce dommy/append! [:div#grid] cell-divs))
 
+(def turn-indicator (node [:div#turn-indicator.cell]))
+
+(def info (node [:div#info "Current player:" turn-indicator]))
+
 (def div->cell
   (into {}
         (map vector
@@ -83,40 +87,44 @@
     (dommy/listen! elem event-type #(put! ch (f %)))
     ch))
 
-(defn draw! [board]
+(defn draw! [board cur-player]
+  (dommy/remove-class! turn-indicator :p1 :p2)
+  (dommy/add-class! turn-indicator cur-player)
   (doseq [div cell-divs]
     (dommy/remove-class! div :p1 :p2))
-  (dbg board)
   (doseq [[cell player] board]
     (when-let [div (cell->div cell)] ;don't try to draw outside the grid
       (dommy/add-class! div player))))
 
-(defn game-loop [cell-click-ch first-player]
-  (go (loop [player first-player
-             move (<! cell-click-ch)
-             board board]
-        (if (board move) ; ignore clicks on living cells
-          (recur player (<! cell-click-ch) board)
-          (let [board (assoc board move player)
-                next-board (step board)]
-            (draw! board)
-            (<! (timeout 200))
-            (draw! next-board)
-            (if-let [winner (get-winner next-board)]
-              (dbg (str winner " won!"))
-              (recur (opponent player)
-                     (<! cell-click-ch)
-                     next-board)))))))
+; same computer -> p1chan = p2chan = clickchan
+; online: p1chan = clickchan, p2chan = ajax
+(defn game-loop [p1-move-chan p2-move-chan starting-player]
+  (let [chans {:p1 p1-move-chan :p2 p2-move-chan}]
+    (go (loop [player   starting-player
+               opponent (get-opponent player)
+               board    board]
+          (let [move (<! (chans player))]
+            (if (board move) ; ignore clicks on living cells
+              (recur player opponent board)
+              (let [board (assoc board move player)
+                    next-board (step board)]
+                (draw! board player)
+                (<! (timeout 200))
+                (draw! next-board opponent)
+                (if-let [winner (get-winner next-board)]
+                  (js/confirm (str winner " won!"))
+                  (recur opponent
+                         player
+                         next-board)))))))))
 
-(def cell-click-ch (event-chan grid :click #(dbg (div->cell (.-target %)))))
+(def cell-click-ch (event-chan grid :click #(dbg  "clk" (div->cell (.-target %)))))
 
 (defn setup! []
-  (draw! board)
-  (dommy/append! (sel1 :body) grid)
-  (game-loop cell-click-ch :p1))
+  (dommy/append! (sel1 :body) grid info)
+  (draw! board :p1)
+  (game-loop cell-click-ch cell-click-ch :p1))
 
-(setup!)
-
+;(setup!)
 
 ;(node [:p "Hello"])
 
