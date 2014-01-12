@@ -3,7 +3,7 @@ body { background: #333; }
 
 #grid {
   max-width: 500px;
-  margin: 10% auto;
+  margin: 0 auto;
 }
 
 .cell {
@@ -29,3 +29,15 @@ body { background: #333; }
 .cell.p1:active { background: #BDC3C7; }
 
 .cell.p2:active { background: #BDC3C7; }
+
+#info {
+  max-width: 500px;
+  margin: 3% auto;
+  font: 3em sans-serif;
+  color: #EEEEEE;
+  text-align: center;
+}
+
+#turn-indicator {
+  float: right;
+}

@@ -18,5 +18,5 @@
      :compiler {:optimizations :simple ;:advanced
                 :pretty-print false
                 :output-dir "out"
-                :output-to "main.js"
-                :source-map "main.js.map"}}]})
+                :output-to "resources/main.js"
+                :source-map "resources/main.js.map"}}]})
