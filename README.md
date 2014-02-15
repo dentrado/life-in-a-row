@@ -1,13 +1,10 @@
 # life-in-a-row
 
-A Clojure library designed to ... well, that part is up to you.
+A combination of game of life and four in a row. Work in progress.
 
-## Usage
-
-FIXME
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013-2014 Martin Forsgren
 
 Distributed under the Eclipse Public License, the same as Clojure.
