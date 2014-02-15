@@ -2,7 +2,11 @@
 ; inspired by http://clj-me.cgrand.net/index.php?s=game+of+life
 
 (ns life-in-a-row.client.main
-  (:require [clojure.set :refer [map-invert]]
+  (:refer-clojure :exclude [read-string])
+  (:require [cljs.reader :refer [read-string]]
+            [clojure.set :refer [map-invert]]
+            [clojure.browser.event :as event]
+            [clojure.browser.net :as net]
             [cljs.core.async :as async
              :refer [<! >! chan close! sliding-buffer put! alts! timeout]]
             [dommy.utils :as utils]
@@ -123,6 +127,13 @@
   (dommy/append! (sel1 :body) grid info)
   (draw! board :p1)
   (game-loop cell-click-ch cell-click-ch :p1))
+
+(defn new-game! []
+  (let [url "http://localhost:4001/new-game"
+        xhr (net/xhr-connection)]
+    (event/listen xhr :error #(dbg "error" %))
+    (event/listen xhr :success  #(dbg (-> % .-target .getResponseText read-string)))
+    (net/transmit xhr url "POST" {:q "hesjan"})))
 
 ;(setup!)
 
