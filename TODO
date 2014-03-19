@@ -1,5 +1,7 @@
 TODO
 
+implement join-game, get-opponent-chan on client
+
 break up into multiple namespaces WIP
 use Om for ui?
 

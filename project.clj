@@ -9,8 +9,12 @@
                  [prismatic/dommy "0.1.2"]
                  [http-kit "2.1.13"]
                  [ring "1.2.1"]
-                 [compojure "1.1.5"]]
+                 [compojure "1.1.5"]
+ ;                [lein-light-nrepl "0.0.9"]
+                 ]
   :plugins [[lein-cljsbuild "0.3.3"]]
+ ; :repl-options {:nrepl-middleware [lighttable.nrepl.handler/lighttable-ops]}
+  :main life-in-a-row.core
   :cljsbuild
   {:builds
    [{:id "simple"
