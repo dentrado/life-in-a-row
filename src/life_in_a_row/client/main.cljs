@@ -14,7 +14,7 @@
             [life-in-a-row.client.util :refer [dbg]]
             [life-in-a-row.client.ui :as ui]
             [life-in-a-row.client.logic :as l])
-  (:use-macros [cljs.core.async.macros :only [go]]
+  (:use-macros [cljs.core.async.macros :only [go go-loop]]
                [dommy.macros :only [node sel sel1]]))
 
 (def grid-size 10)
@@ -33,10 +33,9 @@
 (def info (node [:div#info "Current player:" turn-indicator]))
 
 (def div->cell
-  (into {}
-        (map vector
-             cell-divs
-             (for [x (range grid-size), y (range grid-size)] [x y]))))
+  (into {} (map vector
+                cell-divs
+                (for [x (range grid-size), y (range grid-size)] [x y]))))
 
 (def cell->div (map-invert div->cell))
 
@@ -61,7 +60,7 @@
 ; online: p1chan = clickchan, p2chan = ajax
 (defn game-loop [p1-move-chan p2-move-chan starting-player]
   (let [chans {:p1 p1-move-chan :p2 p2-move-chan}]
-    (go (loop [player   starting-player
+    (go-loop [player   starting-player
                opponent (l/get-opponent player)
                board    board]
           (let [move (<! (chans player))]
@@ -76,23 +75,85 @@
                   (js/confirm (str winner " won!"))
                   (recur opponent
                          player
-                         next-board)))))))))
+                         next-board))))))))
 
-(def cell-click-ch (event-chan grid :click #(dbg  "clk" (div->cell (.-target %)))))
+(defn send-move [chan]
+  (go-loop [value (<! chan)]
+    (let [url "http://localhost:4001/move" ;; todo def url somewhere
+          xhr (net/xhr-connection)]
+      (event/listen xhr :error #(dbg "errår" %))
+      (event/listen xhr :success #(dbg "sukses" (.getResponseText (.-target %))))
+      (net/transmit xhr url "POST" value)
+    (recur (<! chan)))))
+
+;;;; Server communication
+(defn new-game! []
+  (let [ch (async/chan)
+        url "http://localhost:4001/new-game"
+        xhr (net/xhr-connection)]
+    (event/listen xhr :error #(dbg "error" %))
+    (event/listen xhr :success
+                   #(->> % .-target .getResponseText
+                         read-string
+                         (dbg "success")
+                         (put! ch)))
+    (net/transmit xhr url "POST" {:q "hesjan"})
+    ch))
+
+(defn join-game
+  "returns a channel with the opponents moves"
+  [player-id]
+  (let [ch (async/chan)
+        again (fn again []
+                   (let [url "http://localhost:4001/opponent-moves"
+                         xhr (net/xhr-connection)]
+                     (event/listen xhr :error (fn [e] (dbg "error" e) (again)))
+                     (event/listen xhr :success
+                                   (fn [e]
+                                     (->> e .-target .getResponseText
+                                          read-string
+                                          (dbg "success")
+                                          (put! ch))
+                                     (again)))
+                     (net/transmit xhr url "POST" {:player-id player-id})))]
+    (again)
+    ch))
+
+;;;; Setup
+(def cell-click-ch (event-chan grid :click #(dbg "clk" (div->cell (.-target %)))))
 
 (defn setup! []
   (dommy/append! (sel1 :body) grid info)
   (draw! board :p1)
   (game-loop cell-click-ch cell-click-ch :p1))
 
-(defn new-game! []
+
+(async/<!! (new-game!))
+
+(let [url "http://localhost:4001/opponent-moves"
+      xhr (net/xhr-connection)]
+  (event/listen xhr :error  #(dbg "error" %))
+  (event/listen xhr :success
+                (fn [e]
+                  (->> e .-target .getResponseText
+                       read-string
+                       (dbg "success")
+                       )))
+  (net/transmit xhr url "POST" {:player-id "asdf"})
+  )
+
+  ;(setup!)
+
+  ;TODO
+  ; game over screen
+; multiplayer over server:
+; https://coderwall.com/p/y7dima
+; channel send och recv
+(comment
   (let [url "http://localhost:4001/new-game"
         xhr (net/xhr-connection)]
-    (event/listen xhr :error #(dbg "error" %))
-    (event/listen xhr :success  #(dbg "reslt" (-> % .-target .getResponseText read-string)))
-    (net/transmit xhr url "POST" {:q "hesjan"})))
-
-;(setup!)
-
-;(node [:p "Hello"])
+    (event/listen xhr :error #(dbg "errår" %))
+    (event/listen xhr :success #(dbg "sukses" (.getResponseText (.-target %))))
+    (net/transmit xhr url "POST" {:q "hesjas"})
+    ))
 
