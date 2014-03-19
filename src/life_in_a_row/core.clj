@@ -25,20 +25,21 @@
     (swap! opponents assoc p1 p2 p2 p1)
     (pr-str [p1 p2])))
 
-(defn join-handler
-  [player-id request]
+(defn opponent-moves-handler
+  [{{player-id :player-id} :params :as request}]
   (hk/with-channel request chan
                    (swap! channels assoc player-id chan) ; TODO add check if right num of players.
                    (println chan " connected.")
                    (hk/on-close chan (fn [status]
-                                       (swap! channels dissoc player-id)
+                                       ; (swap! channels dissoc player-id)
                                        (println chan " disconnected. status: " status))))
   (println (:session request)))
 
 (defn move-handler [{:keys [player-id body]}]
-  (if-let [chan (get-opponent-chan player-id)]
-    (hk/send! chan body)
-    (println "ERROR: opponent not there!")))
+  (let [chan (get-opponent-chan player-id)]
+    (if (hk/open? chan)
+      (hk/send! chan body)
+      (println "ERROR: opponent not there!"))))
 
 ;; Routing
 (defroutes life
@@ -47,11 +48,9 @@
 
   (POST "/new-game" [] new-game-handler) ;; TODO: cleanup after a while if noone connects
 
-  (POST "/join-game/:player-id" {{player-id :player-id} :params :as request}
-        (join-handler player-id request))
+  (POST "/opponent-moves" [] opponent-moves-handler)
 
   (POST "/move" [] move-handler)) ;render on a fn calls the fn
-
 
 
 (def app
@@ -77,4 +76,4 @@
 
 @channels
 @opponents
-(reset! opponents)
+(reset! opponents {})
