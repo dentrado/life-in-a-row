@@ -12,7 +12,6 @@
             [dommy.utils :as utils]
             [dommy.core :as dommy]
             [life-in-a-row.client.util :refer [dbg]]
-            [life-in-a-row.client.ui :as ui]
             [life-in-a-row.client.logic :as l])
   (:use-macros [cljs.core.async.macros :only [go go-loop]]
                [dommy.macros :only [node sel sel1]]))
